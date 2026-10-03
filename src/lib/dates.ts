@@ -56,16 +56,19 @@ export function formatDayShort(day: DayIso): string {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-// "через 3 дня" / "через 2 мес" — интервал повторения показываем человеку,
-// а не в сырых днях, когда счёт идёт на месяцы и годы.
+// Интервал повторения показываем человеку, а не в сырых днях. Важное
+// требование: под четырьмя оценками подписи должны ОТЛИЧАТЬСЯ — иначе смысл
+// показа интервала теряется. Поэтому между тремя неделями и тремя месяцами
+// считаем в неделях: 34/41/52 дня это 5/6/7 недель, а не три раза "1 month".
 export function formatInterval(days: number): string {
   if (days < 1) return "today";
   if (days === 1) return "1 day";
-  if (days < 30) return `${Math.round(days)} days`;
-  if (days < 365) {
-    const months = days / 30.4;
-    return `${months < 2 ? "1 month" : `${Math.round(months)} months`}`;
+  if (days < 21) return `${Math.round(days)} days`;
+  if (days < 90) {
+    const weeks = Math.round(days / 7);
+    return weeks === 1 ? "1 week" : `${weeks} weeks`;
   }
+  if (days < 365) return `${Math.round(days / 30.4)} months`;
   const years = days / 365;
-  return years < 2 ? "1 year" : `${Math.round(years * 10) / 10} years`;
+  return years < 1.5 ? "1 year" : `${Math.round(years * 10) / 10} years`;
 }

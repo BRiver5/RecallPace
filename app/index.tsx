@@ -120,7 +120,7 @@ export default function HomeScreen() {
             const counts = deckCounts(deck.id);
             const size = cards.filter((c) => c.deckId === deck.id).length;
             return (
-              <Animated.View key={deck.id} entering={FadeInDown.delay(staggerDelay(i, 60)).duration(340)} style={{ width: "47.5%", flexGrow: 1 }}>
+              <Animated.View key={deck.id} entering={FadeInDown.delay(staggerDelay(i, 60)).duration(340)} style={{ width: "47.5%" }}>
                 <PressableScale onPress={() => router.push(`/deck/${deck.id}`)}>
                   <Surface style={{ minHeight: 132, justifyContent: "space-between", padding: theme.spacing.md }}>
                     <Text style={{ color: theme.colors.ink, ...theme.typography.subtitle, fontSize: 16 }} numberOfLines={2}>
@@ -151,7 +151,7 @@ export default function HomeScreen() {
             );
           })}
 
-          <Animated.View entering={FadeInDown.delay(staggerDelay(decks.length, 60)).duration(340)} style={{ width: "47.5%", flexGrow: 1 }}>
+          <Animated.View entering={FadeInDown.delay(staggerDelay(decks.length, 60)).duration(340)} style={{ width: "47.5%" }}>
             <PressableScale onPress={openModal}>
               <View
                 style={{

@@ -53,7 +53,9 @@ export function AnimatedRing({
           stroke={color}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
-          strokeLinecap="round"
+          // При нулевом прогрессе круглый торец всё равно рисует точку сверху,
+          // будто что-то уже сделано — на пустом экране это прямая ложь.
+          strokeLinecap={clamped === 0 ? "butt" : "round"}
           fill="none"
           rotation={-90}
           originX={size / 2}

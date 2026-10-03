@@ -28,8 +28,12 @@ export function CalibrationChart({ bins, size = 230 }: { bins: CalibrationBin[];
   const plot = size - pad * 2;
   const withData = bins.filter((b) => b.reviews > 0);
   const maxReviews = Math.max(1, ...withData.map((b) => b.reviews));
-  const sx = (v: number) => pad + ((v - 0.5) / 0.5) * plot;
-  const sy = (v: number) => pad + (1 - (v - 0.5) / 0.5) * plot;
+  // Отступ под радиус точки: при 100% факта точка иначе наполовину вылезает
+  // за верхний край области графика.
+  const inset = 11;
+  const span = plot - inset * 2;
+  const sx = (v: number) => pad + inset + ((v - 0.5) / 0.5) * span;
+  const sy = (v: number) => pad + inset + (1 - (v - 0.5) / 0.5) * span;
 
   return (
     <View style={{ alignItems: "center" }}>

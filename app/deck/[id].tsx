@@ -35,7 +35,13 @@ export default function DeckDetailScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [logs, setLogs] = useState<ReviewLog[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [cardModal, setCardModal] = useState<{ key: number; card: Card | null } | null>(null);
+  // Modal держим СМОНТИРОВАННЫМ и управляем только visible: если размонтировать
+  // его в момент закрытия (условным рендером), нативный диалог на Android
+  // остаётся висеть поверх экрана, а React о нём уже не знает — экран намертво
+  // перестаёт реагировать. Поймано на прогоне.
+  const [cardModalKey, setCardModalKey] = useState(0);
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [deckModalKey, setDeckModalKey] = useState(0);
   const [deckModalOpen, setDeckModalOpen] = useState(false);
 
@@ -68,7 +74,7 @@ export default function DeckDetailScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingTop: insets.top + theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: theme.spacing.lg }}>
@@ -89,7 +95,11 @@ export default function DeckDetailScreen() {
               <Pencil size={16} color={theme.colors.ink} />
             </PressableScale>
             <PressableScale
-              onPress={() => setCardModal({ key: Date.now(), card: null })}
+              onPress={() => {
+                setEditingCard(null);
+                setCardModalKey((k) => k + 1);
+                setCardModalOpen(true);
+              }}
               style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, borderRadius: theme.radius.pill, backgroundColor: theme.colors.accent }}
             >
               <Plus size={15} color={theme.colors.onAccent} />
@@ -164,7 +174,13 @@ export default function DeckDetailScreen() {
             const r = c.state === "new" ? null : retrievability(c.stability, elapsedDaysFor(c, today));
             return (
               <Animated.View key={c.id} entering={FadeInDown.delay(staggerDelay(i, 40)).duration(300)}>
-                <PressableScale onPress={() => setCardModal({ key: Date.now(), card: c })}>
+                <PressableScale
+                  onPress={() => {
+                    setEditingCard(c);
+                    setCardModalKey((k) => k + 1);
+                    setCardModalOpen(true);
+                  }}
+                >
                   <Surface style={{ marginBottom: theme.spacing.sm, padding: theme.spacing.md, flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: MATURITY_COLORS[maturityOf(c)] }} />
                     <View style={{ flex: 1 }}>
@@ -220,25 +236,25 @@ export default function DeckDetailScreen() {
         </View>
       ) : null}
 
-      {cardModal ? (
-        <CardModal
-          key={cardModal.key}
-          visible
-          title={cardModal.card ? "Edit card" : "New card"}
-          initialFront={cardModal.card?.front ?? ""}
-          initialBack={cardModal.card?.back ?? ""}
-          onClose={() => setCardModal(null)}
-          onSave={async (front, back, addAnother) => {
-            if (cardModal.card) await updateCardText(cardModal.card.id, front, back);
-            else await createCard(deck.id, front, back);
-            load();
-            if (!addAnother) setCardModal(null);
-          }}
-        />
-      ) : null}
+      {/* Ключи соседей обязаны различаться: оба счётчика стартуют с 0, и без
+          префикса React видит двух детей с ключом `0` и может перепутать их. */}
+      <CardModal
+        key={`card-${cardModalKey}`}
+        visible={cardModalOpen}
+        title={editingCard ? "Edit card" : "New card"}
+        initialFront={editingCard?.front ?? ""}
+        initialBack={editingCard?.back ?? ""}
+        onClose={() => setCardModalOpen(false)}
+        onSave={async (front, back, addAnother) => {
+          if (editingCard) await updateCardText(editingCard.id, front, back);
+          else await createCard(deck.id, front, back);
+          load();
+          if (!addAnother) setCardModalOpen(false);
+        }}
+      />
 
       <DeckModal
-        key={deckModalKey}
+        key={`deck-${deckModalKey}`}
         visible={deckModalOpen}
         title="Edit deck"
         initialName={deck.name}
