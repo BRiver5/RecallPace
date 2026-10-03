@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#EEF1EF"
     },
     "ios": {
       "supportsTablet": true,
@@ -51,14 +51,7 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-font",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#000000"
-        }
-      ]
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
